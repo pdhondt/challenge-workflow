@@ -24,6 +24,11 @@ class Status
      */
     private $ticket;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $descriptor;
+
     public function __construct()
     {
         $this->ticket = new ArrayCollection();
@@ -60,6 +65,18 @@ class Status
                 $ticket->setStatus(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescriptor(): ?string
+    {
+        return $this->descriptor;
+    }
+
+    public function setDescriptor(string $descriptor): self
+    {
+        $this->descriptor = $descriptor;
 
         return $this;
     }
