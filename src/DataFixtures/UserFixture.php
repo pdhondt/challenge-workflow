@@ -46,5 +46,8 @@ class UserFixture extends Fixture
 
 
         $manager->flush();
+
+        // to add fixture data to database, run:
+        // php bin/console doctrine:fixtures:load
     }
 }
