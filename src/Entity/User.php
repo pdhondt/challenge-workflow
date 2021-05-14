@@ -95,9 +95,30 @@ class User implements UserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+//        $roles[] = 'ROLE_USER';
+        // this might not be the best idea but I'd have to ask Koen what he thinks.
+        // it's probably safer to just assign the ROLE_USER when a new user is created, rather than by default.
 
         return array_unique($roles);
+    }
+
+    public static function setRolesReadable(User $user) : void
+    {
+        $roles = $user->getRoles();
+        //go through roles and replace with more readable versions.
+        $roles = array_map(function($role){
+            return match ($role)
+            {
+                'ROLE_USER' => 'user',
+                'ROLE_CUSTOMER' => 'customer',
+                'ROLE_AGENT_1' => 'first line agent',
+                'ROLE_AGENT_2' => 'second line agent',
+                'ROLE_MANAGER' => 'manager',
+                'ROLE_ADMIN' => 'administrator test account',
+                default => $role,
+            };
+        }, $roles);
+        $user->setRoles($roles);
     }
 
     public function setRoles(array $roles): self
@@ -242,5 +263,11 @@ class User implements UserInterface
         $this->email = $email;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        // TODO: Implement __toString() method.
+        return $this->username;
     }
 }
