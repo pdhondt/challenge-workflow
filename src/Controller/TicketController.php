@@ -92,7 +92,7 @@ class TicketController extends AbstractController
         return $this->redirectToRoute('ticket_index');
     }
 
-    #[Route('/{id}', name: 'ticket_reopen', methods: ['GET', 'POST'])]
+    #[Route('/{id}/reopen', name: 'ticket_reopen', methods: ['GET', 'POST'])]
     public function reopen(Ticket $ticket): Response
     {
         $status = $this->getDoctrine()->getRepository(Status::class)->find(1);
@@ -108,5 +108,15 @@ class TicketController extends AbstractController
         return $this->render('ticket/show.html.twig', [
             'ticket' => $ticket,
         ]);
+    }
+
+    #[Route('/{id}/close', name: 'ticket_close', methods: ['GET', 'POST'])]
+    public function close(Ticket $ticket): Response
+    {
+        $status = $this->getDoctrine()->getRepository(Status::class)->find(2);
+        $ticket->setStatus($status);
+        $ticket->setClosed(date_create('now'));
+
+        return $this->redirectToRoute('ticket_index');
     }
 }
