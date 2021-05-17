@@ -17,10 +17,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-// TODO: replace routing with something that fits an agent overview/management system better
-//  ie. /agents
-#[Route('/users')]
-class UserController extends AbstractController
+#[Route('/agents')]
+class AgentController extends AbstractController
 {
     private $passwordEncoder;
 
@@ -29,7 +27,7 @@ class UserController extends AbstractController
         $this->passwordEncoder = $passwordEncoder;
     }
 
-    #[Route('/', name: 'user_index', methods: ['GET'])]
+    #[Route('/', name: 'agent_index', methods: ['GET'])]
     public function index(UserRepository $userRepository,): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
@@ -38,18 +36,18 @@ class UserController extends AbstractController
         //    look into it and move it if applicable.
 
         $filter = array('ROLE_AGENT_1', 'ROLE_AGENT_2');
-        $users = $this->filterByRoles($userRepository->findAll(), $filter);
+        $agents = $this->filterByRoles($userRepository->findAll(), $filter);
 
-        //next, parse through the allowed users and make the display of roles a little bit nicer.
-        foreach ($users as $user) User::setRolesReadable($user);
+        //next, parse through the allowed agents and make the display of roles a little bit nicer.
+        foreach ($agents as $agent) User::setRolesReadable($agent);
 
         return $this->render('user/index.html.twig', [
-//            'users' => $userRepository->findAll(),
-            'users' => $users
+//            'agents' => $userRepository->findAll(),
+            'agents' => $agents
         ]);
     }
 
-    #[Route('/stats', name: 'user_stats', methods: ['GET'])]
+    #[Route('/stats', name: 'agent_stats', methods: ['GET'])]
     public function StatOverview(UserRepository $userRepository, ticketRepository $ticketRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER', null, 'This page cannot be seen without proper authorization!!!');
@@ -106,24 +104,24 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'user_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'agent_new', methods: ['GET', 'POST'])]
     public function new(Request $request, MailerInterface $mailer): Response
     {
 
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
 
-        $user = new User();
-        $form = $this->createForm(UserType::class, $user);
+        $agent = new User();
+        $form = $this->createForm(UserType::class, $agent);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid())
         {
             //encode password
-            $user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPassword()));
-            //add user role
-            $user->addRole('ROLE_USER');
+            $agent->setPassword($this->passwordEncoder->encodePassword($agent, $agent->getPassword()));
+            //add agent role
+            $agent->addRole('ROLE_USER');
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($user);
+            $entityManager->persist($agent);
             $entityManager->flush();
 
             // TODO: compose a proper welcome e-mail to a new agent.
@@ -137,80 +135,81 @@ class UserController extends AbstractController
 
             $mailer->send($email);
 
-            return $this->redirectToRoute('user_index');
+            return $this->redirectToRoute('agent_index');
         }
 
         return $this->render('user/new.html.twig', [
-            'user' => $user,
+            'agent' => $agent,
             'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}', name: 'user_show', methods: ['GET'])]
-    public function show(User $user): Response
+    #[Route('/{id}', name: 'agent_show', methods: ['GET'])]
+    public function show(User $agent): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
 
         return $this->render('user/show.html.twig', [
-            'user' => $user,
+            'agent' => $agent,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'user_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, User $user): Response
+    #[Route('/{id}/edit', name: 'agent_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, User $agent): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
 
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserType::class, $agent);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid())
         {
+            $agent->addRole('ROLE_USER');
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('user_index');
+            return $this->redirectToRoute('agent_index');
         }
 
         return $this->render('user/edit.html.twig', [
-            'user' => $user,
+            'agent' => $agent,
             'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}', name: 'user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user): Response
+    #[Route('/{id}', name: 'agent_delete', methods: ['POST'])]
+    public function delete(Request $request, User $agent): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
 
-        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token')))
+        if ($this->isCsrfTokenValid('delete' . $agent->getId(), $request->request->get('_token')))
         {
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($user);
+            $entityManager->remove($agent);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('user_index');
+        return $this->redirectToRoute('agent_index');
     }
 
     #region Utilities
 
     /**
-     * @param array $users array of users to be filtered by this method
+     * @param array $agents array of agents to be filtered by this method
      * @param array $roles array of roles to be filtered by this method
-     * @param bool $filterOutRoles if false, it will remove any user who does not have one of the roles in the roles filter array. if true, it will remove the ones in the filter array.
+     * @param bool $filterOutRoles if false, it will remove any agent who does not have one of the roles in the roles filter array. if true, it will remove the ones in the filter array.
      * @return array
      */
-    #[Pure] private function filterByRoles(array $users, array $roles, bool $filterOutRoles = false): array
+    #[Pure] private function filterByRoles(array $agents, array $roles, bool $filterOutRoles = false): array
     {
-        // this function will check the array users by role
+        // this function will check the array agents by role
         $filteredUsers = [];
-        foreach ($users as $user)
+        foreach ($agents as $agent)
         {
-            if ($user instanceof User)
+            if ($agent instanceof User)
             {
-                if ($filterOutRoles === empty(array_intersect($user->getRoles(), $roles)))
+                if ($filterOutRoles === empty(array_intersect($agent->getRoles(), $roles)))
                 {
-                    $filteredUsers[] = $user;
+                    $filteredUsers[] = $agent;
                     continue;
                 }
             }
