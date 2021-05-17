@@ -4,10 +4,14 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Repository\TicketRepository;
 use App\Repository\UserRepository;
+use App\Utility\AgentStatistics;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +19,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 // TODO: replace routing with something that fits an agent overview/management system better
 //  ie. /agents
-#[Route('/user')]
+#[Route('/users')]
 class UserController extends AbstractController
 {
     private $passwordEncoder;
@@ -26,7 +30,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/', name: 'user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository, ): Response
+    public function index(UserRepository $userRepository,): Response
     {
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
         // for now, we will hardcode this filter functionality
@@ -37,12 +41,7 @@ class UserController extends AbstractController
         $users = $this->filterByRoles($userRepository->findAll(), $filter);
 
         //next, parse through the allowed users and make the display of roles a little bit nicer.
-        // TODO: also, uh, get rid of the 'user' role display, that goes without saying.
-
-        foreach($users as $user)
-        {
-            User::setRolesReadable($user);
-        }
+        foreach ($users as $user) User::setRolesReadable($user);
 
         return $this->render('user/index.html.twig', [
 //            'users' => $userRepository->findAll(),
@@ -50,8 +49,65 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/stats', name: 'user_stats', methods: ['GET'])]
+    public function StatOverview(UserRepository $userRepository, ticketRepository $ticketRepository): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_MANAGER', null, 'This page cannot be seen without proper authorization!!!');
+        $filter = array('ROLE_AGENT_1', 'ROLE_AGENT_2');
+        $users = $this->filterByRoles($userRepository->findAll(), $filter);
+
+        $agentStats = [];
+        foreach ($users as $user)
+        {
+            User::setRolesReadable($user);
+
+            //find all tickets assigned to this agent
+            $tickets = $ticketRepository->findBy([
+                'assignedAgent' => $user->getId(),
+            ]);
+
+            //parse through and count tickets
+            $open = 0;
+            $closed = 0;
+            $reopened = 0;
+
+            foreach($tickets as $ticket)
+            {
+                if($ticket->getStatus()->getDescriptor() !== null)
+                    switch($ticket->getStatus()->getDescriptor())
+                    {
+                        case('open'):
+                            $open++;
+                            break;
+                        case('closed'):
+                            $closed++;
+                            break;
+                        default:
+                            break;
+                    }
+
+                if($ticket->getIsReopened())
+                {
+                    $reopened++;
+                }
+            }
+
+            //stick it in a new AgentStatistics object
+            $agentStatistics = new AgentStatistics($user);
+            $agentStatistics->setOpenTickets($open);
+            $agentStatistics->setClosedTickets($closed);
+            $agentStatistics->setReopenedTickets($reopened);
+
+            $agentStats[] = $agentStatistics;
+
+        }
+        return $this->render('user/statistics.html.twig', [
+            'agents' => $agentStats,
+        ]);
+    }
+
     #[Route('/new', name: 'user_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    public function new(Request $request, MailerInterface $mailer): Response
     {
 
         $this->denyAccessUnlessGranted('ROLE_MANAGER');
@@ -63,12 +119,23 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid())
         {
             //encode password
-            $user->setPassword($this->passwordEncoder->encodePassword($user,$user->getPassword()));
+            $user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPassword()));
             //add user role
             $user->addRole('ROLE_USER');
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
+
+            // TODO: compose a proper welcome e-mail to a new agent.
+            //   also, maybe split this off.
+
+            $email = (new Email())
+                ->from('helpdesk@someplace.net')
+                ->to('me@test.mail')
+                ->subject('account activation!')
+                ->text('guess what chuckle****, you work for us now!');
+
+            $mailer->send($email);
 
             return $this->redirectToRoute('user_index');
         }
