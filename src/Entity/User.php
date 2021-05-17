@@ -16,6 +16,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class User implements UserInterface
 {
+
+    #region Variables
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -59,6 +61,19 @@ class User implements UserInterface
      */
     private $email;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $firstName;
+
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $lastName;
+
+    #endregion
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
@@ -78,7 +93,7 @@ class User implements UserInterface
      */
     public function getUsername(): string
     {
-        return (string) $this->username;
+        return (string)$this->username;
     }
 
     public function setUsername(string $username): self
@@ -102,11 +117,12 @@ class User implements UserInterface
         return array_unique($roles);
     }
 
-    public static function setRolesReadable(User $user) : void
+    public static function setRolesReadable(User $user): void
     {
         $roles = $user->getRoles();
         //go through roles and replace with more readable versions.
-        $roles = array_map(function($role){
+        $roles = array_map(function ($role)
+        {
             return match ($role)
             {
                 'ROLE_USER' => 'user',
@@ -124,6 +140,14 @@ class User implements UserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function addRole(string $newRole): self
+    {
+        $this->roles[] = $newRole;
+        $this->roles = array_unique($this->roles);
 
         return $this;
     }
@@ -173,7 +197,8 @@ class User implements UserInterface
 
     public function addComment(Comment $comment): self
     {
-        if (!$this->comments->contains($comment)) {
+        if (!$this->comments->contains($comment))
+        {
             $this->comments[] = $comment;
             $comment->setUserCommented($this);
         }
@@ -183,9 +208,11 @@ class User implements UserInterface
 
     public function removeComment(Comment $comment): self
     {
-        if ($this->comments->removeElement($comment)) {
+        if ($this->comments->removeElement($comment))
+        {
             // set the owning side to null (unless already changed)
-            if ($comment->getUserCommented() === $this) {
+            if ($comment->getUserCommented() === $this)
+            {
                 $comment->setUserCommented(null);
             }
         }
@@ -203,7 +230,8 @@ class User implements UserInterface
 
     public function addCreatedTicket(Ticket $createdTicket): self
     {
-        if (!$this->createdTickets->contains($createdTicket)) {
+        if (!$this->createdTickets->contains($createdTicket))
+        {
             $this->createdTickets[] = $createdTicket;
             $createdTicket->setUserCreated($this);
         }
@@ -213,9 +241,11 @@ class User implements UserInterface
 
     public function removeCreatedTicket(Ticket $createdTicket): self
     {
-        if ($this->createdTickets->removeElement($createdTicket)) {
+        if ($this->createdTickets->removeElement($createdTicket))
+        {
             // set the owning side to null (unless already changed)
-            if ($createdTicket->getUserCreated() === $this) {
+            if ($createdTicket->getUserCreated() === $this)
+            {
                 $createdTicket->setUserCreated(null);
             }
         }
@@ -233,7 +263,8 @@ class User implements UserInterface
 
     public function addAssignedTicket(Ticket $assignedTicket): self
     {
-        if (!$this->assignedTickets->contains($assignedTicket)) {
+        if (!$this->assignedTickets->contains($assignedTicket))
+        {
             $this->assignedTickets[] = $assignedTicket;
             $assignedTicket->setAssignedAgent($this);
         }
@@ -243,9 +274,11 @@ class User implements UserInterface
 
     public function removeAssignedTicket(Ticket $assignedTicket): self
     {
-        if ($this->assignedTickets->removeElement($assignedTicket)) {
+        if ($this->assignedTickets->removeElement($assignedTicket))
+        {
             // set the owning side to null (unless already changed)
-            if ($assignedTicket->getAssignedAgent() === $this) {
+            if ($assignedTicket->getAssignedAgent() === $this)
+            {
                 $assignedTicket->setAssignedAgent(null);
             }
         }
@@ -269,5 +302,29 @@ class User implements UserInterface
     {
         // TODO: Implement __toString() method.
         return $this->username;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): self
+    {
+        $this->lastName = $lastName;
+
+        return $this;
     }
 }
