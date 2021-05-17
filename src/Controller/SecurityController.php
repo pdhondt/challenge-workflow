@@ -6,8 +6,10 @@ use http\Client\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+
 
 class SecurityController extends AbstractController
 {
@@ -38,13 +40,14 @@ class SecurityController extends AbstractController
 
     public function register(MailerInterface $mailer, Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $formAuthenticator)
     {
-        if ($form->isSubmitted() && $form->isValid()) {
-            $email = (new Email())
-                ->from('alienmailcarrier@example.com')
-                ->to($user->getEmail())
-                ->subject('Welcome to the Space Bar!')
-                ->text("Nice to meet you {$user->getFirstName()}! ❤️");
-            $mailer->send($email);
-        }
+        //if ($form->isSubmitted() && $form->isValid()) {
+
+            //$email = (new Email())
+           //     ->from('alienmailcarrier@example.com')
+           //     ->to($user->getEmail())
+           //     ->subject('Welcome to the Space Bar!')
+           //     ->text("Nice to meet you {$user->getFirstName()}! ❤️");
+           // $mailer->send($email);
+       // }
     }
 }
