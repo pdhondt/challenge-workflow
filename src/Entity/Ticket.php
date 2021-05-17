@@ -22,22 +22,22 @@ class Ticket
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isEscalated;
+    private $isEscalated = false;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $priority;
+    private $priority = -1;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isPrivate;
+    private $isPrivate = false;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isReopened;
+    private $isReopened = false;
 
     /**
      * @ORM\Column(type="datetime")

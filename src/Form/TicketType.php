@@ -12,15 +12,17 @@ class TicketType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('isEscalated')
-            ->add('priority')
-            ->add('isPrivate')
-            ->add('isReopened')
-            ->add('created')
-            ->add('closed')
-            ->add('status')
-            ->add('userCreated')
-            ->add('assignedAgent')
+            ->add('title')
+            ->add('description')
+            //->add('isEscalated')
+            //->add('priority')
+            //->add('isPrivate')
+            //->add('isReopened')
+            //->add('created')
+            //->add('closed')
+            //->add('status')
+            //->add('userCreated')
+            //->add('assignedAgent')
         ;
     }
 

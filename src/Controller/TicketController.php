@@ -2,13 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Status;
 use App\Entity\Ticket;
+use App\Entity\User;
 use App\Form\TicketType;
 use App\Repository\TicketRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 #[Route('/ticket')]
 class TicketController extends AbstractController
@@ -24,7 +27,16 @@ class TicketController extends AbstractController
     #[Route('/new', name: 'ticket_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
+        $status = $this->getDoctrine()->getRepository(Status::class)->find(1);
+
+        /** @var User $user */
+        //$user = $this->getUser();
+        $userCreated = $this->getUser();
+
         $ticket = new Ticket();
+        $ticket->setCreated(date_create('now'));
+        $ticket->setStatus($status);
+        $ticket->setUserCreated($userCreated);
         $form = $this->createForm(TicketType::class, $ticket);
         $form->handleRequest($request);
 
@@ -78,5 +90,23 @@ class TicketController extends AbstractController
         }
 
         return $this->redirectToRoute('ticket_index');
+    }
+
+    #[Route('/{id}', name: 'ticket_reopen', methods: ['GET', 'POST'])]
+    public function reopen(Ticket $ticket): Response
+    {
+        $status = $this->getDoctrine()->getRepository(Status::class)->find(1);
+        $currentTime = new DateTime();
+        $closedTime = $ticket->getClosed();
+        $timeSinceClosed = $currentTime->diff($closedTime);
+
+        if ($timeSinceClosed->i < 60)
+        {
+            $ticket->setStatus($status);
+        }
+
+        return $this->render('ticket/show.html.twig', [
+            'ticket' => $ticket,
+        ]);
     }
 }
