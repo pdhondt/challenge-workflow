@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\UserType;
 use http\Client\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,28 +40,29 @@ class SecurityController extends AbstractController
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
-    public function sendWelcomingEmail(MailerInterface $mailer): Response
-    {
-        $email = (new TemplatedEmail())
-            ->from('kantarjiev88@abv.bg')
-            ->to($user->getEmail())
-            ->subject('Welcome to the Team!')
-            ->text("Welcome to aware team {$user->getUsername()}!")
-            ->htmlTemplate('email/welcome.html.twig')
-            ->context([
-                'user' => $user
-            ]);
 
-        $mailer->send($email);
-
-        return new Response('Email sent');
-    }
 
     public function register(MailerInterface $mailer,  Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $formAuthenticator)
     {
+        $user = new User();
+        $form = $this->createForm(UserType::class, $user);
+        $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
 
-           $this->sendWelcomingEmail();
+            $email = (new TemplatedEmail())
+                ->from('kantarjiev88@abv.bg')
+                ->to($user->getEmail())
+                ->subject('Welcome to the Team!')
+                ->text("Welcome to aware team {$user->getUsername()}!")
+                ->htmlTemplate('email/welcome.html.twig')
+                ->context([
+                    'user' => $user
+                ]);
+
+            $mailer->send($email);
+
+            return new Response('Email sent');
         }
     }
 }
