@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use http\Client\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -37,17 +39,28 @@ class SecurityController extends AbstractController
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
-
-    public function register(MailerInterface $mailer, Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $formAuthenticator)
+    public function sendWelcomingEmail(MailerInterface $mailer): Response
     {
-        //if ($form->isSubmitted() && $form->isValid()) {
+        $email = (new TemplatedEmail())
+            ->from('kantarjiev88@abv.bg')
+            ->to($user->getEmail())
+            ->subject('Welcome to the Team!')
+            ->text("Welcome to aware team {$user->getUsername()}!")
+            ->htmlTemplate('email/welcome.html.twig')
+            ->context([
+                'user' => $user
+            ]);
 
-            //$email = (new Email())
-           //     ->from('alienmailcarrier@example.com')
-           //     ->to($user->getEmail())
-           //     ->subject('Welcome to the Space Bar!')
-           //     ->text("Nice to meet you {$user->getFirstName()}! ❤️");
-           // $mailer->send($email);
-       // }
+        $mailer->send($email);
+
+        return new Response('Email sent');
+    }
+
+    public function register(MailerInterface $mailer,  Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $formAuthenticator)
+    {
+        if ($form->isSubmitted() && $form->isValid()) {
+
+           $this->sendWelcomingEmail();
+        }
     }
 }

@@ -9,12 +9,12 @@
 <div class="body">
     <div class="container">
         <div class="header text-center">
-            <a href="{{ url('welcome') }}">
+            <a href="{{ url('app_welcome') }}">
                 <img src="{{ absolute_url(asset('build/images/email/logo.png')) }}" class="logo" alt="Tomato & Co. Logo">
             </a>
         </div>
         <div class="content">
-            <h1 class="text-center">Welcome to the team{{ customer.username }}!</h1>
+            <h1 class="text-center">Welcome to the team {{ user.firstName }}!</h1>
             <p class="block">
                 Welcome to <strong>aware team</strong>, we can't to work with you .
                 Get started on your first ticket and look around our website to get yourself comfortable .
