@@ -98,7 +98,7 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 
         $mainRole = $token->getUser()->getRoles();
         return match ($mainRole) {
-            ['ROLE_AGENT'] => new RedirectResponse($this->urlGenerator->generate('welcome_agent')),
+            ['ROLE_AGENT'] => new RedirectResponse($this->urlGenerator->generate('agent')),
             ['ROLE_MANAGER'] => new RedirectResponse($this->urlGenerator->generate('welcome_manager')),
             ['ROLE_CUSTOMER'] => new RedirectResponse($this->urlGenerator->generate('welcome_customer')),
             default => throw new \Exception('TODO: provide a valid redirect inside ' . __FILE__),
