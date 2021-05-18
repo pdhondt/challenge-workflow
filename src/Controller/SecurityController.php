@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\RegistrationFormType;
 use App\Form\UserType;
 use http\Client\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,6 +13,7 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Message;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 
 
 class SecurityController extends AbstractController
@@ -49,6 +51,19 @@ class SecurityController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+           // /** @var User $userModel */
+           // $userModel = $form->getData();
+           // $user = new User();
+           // $user->setFirstName($userModel->firstName);
+           // $user->setEmail($userModel->email);
+           // $user->setPassword($passwordEncoder->encodePassword(
+           //     $user,
+           //     $userModel->plainPassword
+           // ));
+           // // be absolutely sure they agree
+           // if (true === $userModel->agreeTerms) {
+           //     $user->agreeToTerms();
+           // }
 
             $email = (new TemplatedEmail())
                 ->from('kantarjiev88@abv.bg')
